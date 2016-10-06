@@ -7,6 +7,8 @@ const publicly = key => key,
       privately = key => Symbol(key)
 
 const inject = (target, sym, def) => {
+  console.log('injecting', target, sym, def)
+  
   if (target instanceof Function && target.prototype)
     target.prototype[sym] = def
   else
@@ -42,9 +44,9 @@ Extension.prototype = {
   }
 }
 
-        <!-- Example: reverse apply extension -->
+  <!-- Example: reverse apply extension -->
   
-const reverseApply = Extension(Number, String) ({
+const reverseApply = Extension(Object) ({
   rcall(func, ...args) {
     return func.apply(this, args)
   },
@@ -56,26 +58,37 @@ const reverseApply = Extension(Number, String) ({
 
 console.log(reverseApply)
 
-function log() { console.log(this) }
+function log(...args) { console.log(this, ...args) }
 
-2 [reverseApply.rapply] (function() {
-  return this + 1
-}) [reverseApply.rapply] (log)
+function increment() { return this + 1 }
 
-"boom" [reverseApply.rapply] (function() {
-  return this + 1
-}) [reverseApply.rapply] (log)
+2
+[reverseApply.rapply] (increment)
+[reverseApply.rapply] (log);
 
-try {
-  const notAStringOrNumber = { valueOf() { return 3 } }
-  notAStringOrNumber [reverseApply.rapply] (function() {
-    return this + 1
-  }) [reverseApply.rapply] (log)
-} catch(ex) { console.error(ex) }
+"boom"
+[reverseApply.rapply] (increment)
+[reverseApply.rapply] (log);
+
+({ valueOf() { return 99 } })
+[reverseApply.rapply] (increment)
+[reverseApply.rcall] (log, 'hello', 'world')
+
+  <!-- Example: string reverse -->
+const rev = Extension(String) ({
+  reverse() {
+    let r = ''
+    let i = this.length; while (--i >= 0) {
+      r += this[i]
+    }
+    return r
+  }
+})
+
+console.log("hello" [rev.reverse] ())
 
 
-
-  <!-- Example: a scary public extension -->
+  <!-- example: a scary public extension -->
 
 const hiExt = Extension(Object) () [monkey] ({
   hello() { console.log('hi!') }
