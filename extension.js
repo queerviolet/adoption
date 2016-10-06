@@ -3,25 +3,19 @@
 const monkey = Symbol('public')
 const appliedTo = Symbol('appliedTo')
 
-const proto = {
-  [monkey] (def) {
-    return extend.call(this, def, publicly)
-  }
-}
-
 const publicly = key => key,
       privately = key => Symbol(key)
 
 const inject = (target, sym, def) => {
-  console.log('injecting', target, sym, def)
-  ;(target instanceof Function && target.prototype)?
+  if (target instanceof Function && target.prototype)
     target.prototype[sym] = def
-    : target[sym] = def
+  else
+    target[sym] = def
 }
 
 function extend(def={},
                 keygen=privately,
-                targets=[]) {
+                ...targets) {
   const extension = Object.create(this)
   extension [appliedTo] = extension [appliedTo] || targets
   const bases = extension [appliedTo]
@@ -37,11 +31,16 @@ function extend(def={},
 const Extension =
         (...targets) =>
         def =>
-        extend.call(proto,
+        extend.call(Extension.prototype,
                     def,
                     privately,
-                    targets)
+                    ...targets)
 
+Extension.prototype = {
+  [monkey] (def) {
+    return extend.call(this, def, publicly)
+  }
+}
 
         <!-- Example: reverse apply extension -->
   
@@ -57,23 +56,26 @@ const reverseApply = Extension(Number, String) ({
 
 console.log(reverseApply)
 
+function log() { console.log(this) }
+
 2 [reverseApply.rapply] (function() {
   return this + 1
-}) [reverseApply.rapply] (console.log)
+}) [reverseApply.rapply] (log)
 
 "boom" [reverseApply.rapply] (function() {
   return this + 1
-}) [reverseApply.rapply] (console.log)
+}) [reverseApply.rapply] (log)
 
 try {
-  ;({ valueOf() { return 3 } }) [reverseApply.rapply] (function() {
+  const notAStringOrNumber = { valueOf() { return 3 } }
+  notAStringOrNumber [reverseApply.rapply] (function() {
     return this + 1
-  }) [reverseApply.rapply]
+  }) [reverseApply.rapply] (log)
 } catch(ex) { console.error(ex) }
 
 
 
-  <!-- Example: a public extension -->
+  <!-- Example: a scary public extension -->
 
 const hiExt = Extension(Object) () [monkey] ({
   hello() { console.log('hi!') }
