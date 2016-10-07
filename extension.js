@@ -22,7 +22,7 @@ TESTS (module) `extend(def: Object,
     world() { return 'world' },
   }
   
-  suite.test `extend monkey patches a definition onto some targets`
+  suite.test `monkey patches a definition onto some targets`
   (test => {
     const target = {}
     extend.call({}, def, key => key, target)
@@ -31,7 +31,7 @@ TESTS (module) `extend(def: Object,
     test.done()
   })
 
-  suite.test `extend returns a mapping of names to keys`
+  suite.test `returns a mapping of names to keys`
   (({expect, done}) => {
     const target = {}
     const mapping = extend.call({}, def, privately, target)
@@ -46,6 +46,28 @@ TESTS (module) `extend(def: Object,
       .to.eql(2)
     done()
   })
+
+  const property = Object.getOwnPropertyDescriptor
+  suite.test `preserves property descriptors`
+  (({expect, done}) => {
+    const target = {}
+    const def = {
+      get hello() { return 'hi' },
+      set world(val) { this.setterWasCalled = true }
+    }
+    const mapping = extend.call({}, def, privately, target)
+
+    expect(property(target, mapping.hello))
+      .to.deep.equal(property(def, 'hello'))
+    expect(property(target, mapping.world))
+      .to.deep.equal(property(def, 'world'))
+
+    expect(target[mapping.hello])
+      .to.eql('hi')
+    target[mapping.world] = 'something'
+    expect(target.setterWasCalled).to.eql(true)
+    done()    
+  })
 })
 
 
@@ -56,13 +78,13 @@ function extend(def={},
   const bases
           = extension [appliedTo]
           = extension [appliedTo] || targets  
-  for (let key of Object.keys(def)) {
+  for (let key of Object.getOwnPropertyNames(def)) {
     const sym = keygen(key)
     extension[key] = sym
     for (let target of bases) {
       // console.log('injecting', target, sym, def, key)
-      // TODO: Handle property descriptors correctly
-      target[sym] = def[key]
+      Object.defineProperty(target, sym,
+                            Object.getOwnPropertyDescriptor(def, key))
     }
   }
   if (def[defaultKey] in extension) {
