@@ -7,7 +7,7 @@ I missed extensions from Swift / Objective-C, so I brought them to Javascript.
 ## use
 
 ```
-const Extension = require('..').Extension
+const Extension = require('adopt').Extension
 
 // Create an extension.
 // An extension adds private methods to the types you specify.
