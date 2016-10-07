@@ -12,7 +12,7 @@ const Extension =
 module.exports = Extension
 
 
-const {TEST, TESTS} = require('./test')
+const {TESTS} = require('./test')
 TESTS (module) `extend(def: Object,
                        keygen: String -> String|Symbol,
                        ...targets: [...Object]) -> Extension`
