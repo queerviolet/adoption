@@ -49,7 +49,17 @@ module.exports = Extension
 if (!module.parent) {
   <!-- Example: reverse apply extension -->
   
-  const reverseApply = Extension(Object) ({
+  const pipe = Extension(Object) ({
+    [Extension.defaultKey]: 'pipe',
+
+    pipe(func, ...args) {
+      const ret = func.apply(this, [this].concat(...args))
+      if (typeof ret !== 'undefined')
+        return ret
+      else
+        return this
+    },
+    
     rcall(func, ...args) {
       return func.apply(this, args)
     },
@@ -59,23 +69,23 @@ if (!module.parent) {
     }
   })
 
-  console.log(reverseApply)
+  console.log(pipe)
 
-  function log(...args) { console.log(this, ...args) }
-
-  function increment() { return this + 1 }
+  function add(rhs=1) { return this + rhs }
 
   2
-  [reverseApply.rapply] (increment)
-  [reverseApply.rapply] (log);
+  [pipe.rapply] (add)
+  [pipe] (console.log);
 
   "boom"
-  [reverseApply.rapply] (increment)
-  [reverseApply.rapply] (log);
+  [pipe.rcall] (add, 'boom money')
+  [pipe] (console.log);
 
-  ({ valueOf() { return 99 } })
-  [reverseApply.rapply] (increment)
-  [reverseApply.rcall] (log, 'hello', 'world')
+  ({ data: 99, valueOf() { return this.data } })
+  [pipe.rcall] (add)
+  [pipe] (console.log, 'hello', 'world')
+  [pipe] (x => x + 1)
+  [pipe] (console.log)
 
   <!-- Example: string reverse -->
     
