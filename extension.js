@@ -25,8 +25,8 @@ function extend(def={},
       target[sym] = def[key]
     }
   }
-  if (def[Extension.defaultKey] in extension) {
-    extension[Symbol.toPrimitive] = () => extension[def[Extension.defaultKey]]
+  if (def[defaultKey] in extension) {
+    extension[Symbol.toPrimitive] = () => extension[def[defaultKey]]
   }  
   return extension
 }
