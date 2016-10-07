@@ -20,14 +20,14 @@ function extend(def={},
     const sym = keygen(key)
     extension[key] = sym
     for (let target of bases) {
-      console.log('injecting', target, sym, def, key)
+      // console.log('injecting', target, sym, def, key)
       // TODO: Handle property descriptors correctly
       target[sym] = def[key]
-      if (def[Extension.defaultKey] in extension) {
-        target[Symbol.toPrimitive] = () => extension[def[Extension.defaultKey]]
-      }  
     }
   }
+  if (def[Extension.defaultKey] in extension) {
+    extension[Symbol.toPrimitive] = () => extension[def[Extension.defaultKey]]
+  }  
   return extension
 }
 
